@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import type { UserSession } from '../types'
 import { logAudit } from '../data/auditLayer'
+import { getStaff } from '../data/dataLayer'
 
 interface AuthContextType {
   currentUser: UserSession | null
@@ -23,7 +24,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logAudit(user.id, user.name, 'App Opened', 'App', undefined, 'User opened the application')
     } else {
       // Auto-detect user - for demo, try to match by email domain or auto-login first user
-      const { getStaff } = require('../data/dataLayer')
       const staff = getStaff()
       if (staff.length > 0) {
         // Auto-login as first admin user (for demo purposes)
@@ -45,7 +45,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const login = (userId: string) => {
-    const { getStaff } = require('../data/dataLayer')
     const staff = getStaff()
     const user = staff.find((s: any) => s.id === userId)
 
