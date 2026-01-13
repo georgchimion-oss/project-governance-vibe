@@ -1,12 +1,13 @@
 import { useState } from 'react'
-import { GoogleLogin } from '@react-oauth/google'
 import { useAuth } from '../context/AuthContext'
 import { getStaff } from '../data/dataLayer'
 
 export default function Login() {
-  const { login, loginWithGoogle } = useAuth()
+  const { login, loginWithMicrosoft, isSsoEnabled } = useAuth()
   const [selectedUserId, setSelectedUserId] = useState('')
   const [showDemoLogin, setShowDemoLogin] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
   const staff = getStaff()
 
   const handleLogin = (e: React.FormEvent) => {
@@ -14,22 +15,22 @@ export default function Login() {
     if (selectedUserId) {
       const user = staff.find(s => s.id === selectedUserId)
       if (user) {
-        // Save the username for auto-detection next time
         window.localStorage.setItem('manualUsername', user.name.split(' ')[0].toLowerCase())
         login(selectedUserId)
       }
     }
   }
 
-  const handleGoogleSuccess = (response: any) => {
-    if (response.credential) {
-      loginWithGoogle(response.credential)
+  const handleMicrosoftLogin = async () => {
+    setIsLoading(true)
+    setError('')
+    try {
+      await loginWithMicrosoft()
+    } catch (err: any) {
+      setError(err.message || 'Sign in failed. Please try again.')
+    } finally {
+      setIsLoading(false)
     }
-  }
-
-  const handleGoogleError = () => {
-    console.error('Google login failed')
-    alert('Google login failed. Please try again or use the demo login.')
   }
 
   return (
@@ -71,33 +72,68 @@ export default function Login() {
           </p>
         </div>
 
-        {/* Google Sign-In Button */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={handleGoogleError}
-            theme="filled_blue"
-            size="large"
-            text="signin_with"
-            shape="rectangular"
-            width="300"
-          />
-        </div>
+        {/* Microsoft SSO Button */}
+        {isSsoEnabled && (
+          <>
+            <button
+              onClick={handleMicrosoftLogin}
+              disabled={isLoading}
+              style={{
+                width: '100%',
+                padding: '0.875rem 1.5rem',
+                fontSize: '1rem',
+                fontWeight: '600',
+                background: '#2F2F2F',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.75rem',
+                opacity: isLoading ? 0.7 : 1,
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                if (!isLoading) e.currentTarget.style.background = '#404040'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#2F2F2F'
+              }}
+            >
+              {/* Microsoft Logo */}
+              <svg width="20" height="20" viewBox="0 0 21 21">
+                <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
+                <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
+                <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
+                <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
+              </svg>
+              {isLoading ? 'Signing in...' : 'Sign in with Microsoft'}
+            </button>
 
-        {/* Divider */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            margin: '1.5rem 0',
-            color: 'var(--text-secondary)',
-            fontSize: '0.8125rem',
-          }}
-        >
-          <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
-          <span style={{ padding: '0 1rem' }}>or</span>
-          <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
-        </div>
+            {error && (
+              <p style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.75rem', textAlign: 'center' }}>
+                {error}
+              </p>
+            )}
+
+            {/* Divider */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                margin: '1.5rem 0',
+                color: 'var(--text-secondary)',
+                fontSize: '0.8125rem',
+              }}
+            >
+              <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
+              <span style={{ padding: '0 1rem' }}>or</span>
+              <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
+            </div>
+          </>
+        )}
 
         {/* Demo Login Toggle */}
         {!showDemoLogin ? (
@@ -125,12 +161,12 @@ export default function Login() {
               e.currentTarget.style.color = 'var(--text-secondary)'
             }}
           >
-            Use Demo Account
+            {isSsoEnabled ? 'Use Demo Account' : 'Select Account'}
           </button>
         ) : (
           <form onSubmit={handleLogin}>
             <div className="form-group">
-              <label className="form-label">Select Demo User *</label>
+              <label className="form-label">Select User *</label>
               <select
                 required
                 value={selectedUserId}
@@ -158,25 +194,27 @@ export default function Login() {
                 border: 'none',
               }}
             >
-              Sign In as Demo User
+              Sign In
             </button>
 
-            <button
-              type="button"
-              onClick={() => setShowDemoLogin(false)}
-              style={{
-                width: '100%',
-                marginTop: '0.75rem',
-                padding: '0.5rem',
-                fontSize: '0.8125rem',
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--text-secondary)',
-                cursor: 'pointer',
-              }}
-            >
-              ← Back to Google Sign-In
-            </button>
+            {isSsoEnabled && (
+              <button
+                type="button"
+                onClick={() => setShowDemoLogin(false)}
+                style={{
+                  width: '100%',
+                  marginTop: '0.75rem',
+                  padding: '0.5rem',
+                  fontSize: '0.8125rem',
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--text-secondary)',
+                  cursor: 'pointer',
+                }}
+              >
+                ← Back to Microsoft Sign-In
+              </button>
+            )}
           </form>
         )}
 
@@ -188,7 +226,9 @@ export default function Login() {
             textAlign: 'center',
           }}
         >
-          Sign in with your Google account for SSO, or use a demo account for testing.
+          {isSsoEnabled
+            ? 'Sign in with your PwC Microsoft account.'
+            : 'Select your account to continue.'}
         </p>
       </div>
     </div>

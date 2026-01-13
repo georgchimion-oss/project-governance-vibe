@@ -1,7 +1,9 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { GoogleAuthProviderWrapper } from './context/GoogleAuthProvider'
+import { MsalProvider } from '@azure/msal-react'
+import { PublicClientApplication } from '@azure/msal-browser'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { msalConfig } from './config/msalConfig'
 import Layout from './components/Layout'
 import Login from './screens/Login'
 import Dashboard from './screens/Dashboard'
@@ -18,6 +20,9 @@ import OrgChartWorkstream from './screens/OrgChartWorkstream'
 import AdminAnalytics from './screens/AdminAnalytics'
 import { seedInitialData } from './data/dataLayer'
 import './App.css'
+
+// Initialize MSAL instance
+const msalInstance = new PublicClientApplication(msalConfig)
 
 function AppRoutes() {
   const { currentUser } = useAuth()
@@ -135,12 +140,12 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <GoogleAuthProviderWrapper>
+    <MsalProvider instance={msalInstance}>
       <BrowserRouter>
         <AuthProvider>
           <AppRoutes />
         </AuthProvider>
       </BrowserRouter>
-    </GoogleAuthProviderWrapper>
+    </MsalProvider>
   )
 }

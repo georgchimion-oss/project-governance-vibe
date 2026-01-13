@@ -1,33 +1,95 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { useMsal, useIsAuthenticated } from '@azure/msal-react'
+import { AccountInfo } from '@azure/msal-browser'
 import type { UserSession } from '../types'
 import { logAudit } from '../data/auditLayer'
 import { getStaff } from '../data/dataLayer'
+import { loginRequest, isMsalConfigured } from '../config/msalConfig'
 
 interface AuthContextType {
   currentUser: UserSession | null
   login: (userId: string) => void
-  loginWithGoogle: (credential: string) => void
+  loginWithMicrosoft: () => Promise<void>
   logout: () => void
   isAdmin: boolean
   isManager: boolean
+  isSsoEnabled: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<UserSession | null>(null)
+  const { instance, accounts } = useMsal()
+  const isAuthenticated = useIsAuthenticated()
+  const isSsoEnabled = isMsalConfigured()
 
+  // Handle Microsoft SSO authentication
   useEffect(() => {
-    // Try to detect Windows username from environment
+    if (isAuthenticated && accounts.length > 0 && !currentUser) {
+      const account = accounts[0]
+      handleMicrosoftAccount(account)
+    }
+  }, [isAuthenticated, accounts])
+
+  const handleMicrosoftAccount = (account: AccountInfo) => {
+    const email = account.username || ''
+    const name = account.name || email.split('@')[0]
+
+    // Find matching staff by email
+    const staff = getStaff()
+    const matchedUser = staff.find((s: any) => s.email.toLowerCase() === email.toLowerCase())
+
+    let session: UserSession
+
+    if (matchedUser) {
+      // Existing user - use their role and info
+      session = {
+        id: matchedUser.id,
+        name: matchedUser.name,
+        email: matchedUser.email,
+        title: matchedUser.title,
+        userRole: matchedUser.userRole,
+        supervisorId: matchedUser.supervisorId,
+        workstreamIds: matchedUser.workstreamIds,
+      }
+    } else {
+      // New user from SSO - create session with default "User" role
+      session = {
+        id: `sso-${email}`,
+        name: name,
+        email: email,
+        title: 'Associate',
+        userRole: 'User',
+        workstreamIds: [],
+      }
+    }
+
+    setCurrentUser(session)
+    localStorage.setItem('currentUser', JSON.stringify(session))
+    logAudit(session.id, session.name, 'SSO-Login', 'App', undefined, 'User logged in via Microsoft SSO')
+  }
+
+  // Fallback: Load from localStorage or auto-detect demo user
+  useEffect(() => {
+    if (currentUser) return // Already logged in
+
+    const savedUser = localStorage.getItem('currentUser')
+    if (savedUser) {
+      const user = JSON.parse(savedUser)
+      setCurrentUser(user)
+      logAudit(user.id, user.name, 'App Opened', 'App', undefined, 'User opened the application')
+      return
+    }
+
+    // If SSO is enabled, don't auto-login - let user click Sign In
+    if (isSsoEnabled) return
+
+    // Demo mode: auto-detect user
     const detectUser = () => {
       const staff = getStaff()
       if (staff.length === 0) return null
 
-      // Try to get Windows username from environment variable via electron or system
-      // In a real PWC environment, this would connect to Active Directory
-      // For now, we'll use a combination of approaches:
-
-      // 1. Check if there's a manually set username (for testing)
       const manualUsername = window.localStorage.getItem('manualUsername')
       if (manualUsername) {
         const matchedUser = staff.find((s: any) =>
@@ -37,40 +99,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (matchedUser) return matchedUser
       }
 
-      // 2. Try to find Georg Chimion (default demo user)
       const georgUser = staff.find((s: any) =>
         s.name.toLowerCase().includes('georg') && s.name.toLowerCase().includes('chimion')
       )
       if (georgUser) return georgUser
 
-      // 3. Fallback to first admin user
       return staff.find((s: any) => s.userRole === 'Admin') || staff[0]
     }
 
-    const savedUser = localStorage.getItem('currentUser')
-    if (savedUser) {
-      const user = JSON.parse(savedUser)
-      setCurrentUser(user)
-      logAudit(user.id, user.name, 'App Opened', 'App', undefined, 'User opened the application')
-    } else {
-      const detectedUser = detectUser()
-      if (detectedUser) {
-        const session: UserSession = {
-          id: detectedUser.id,
-          name: detectedUser.name,
-          email: detectedUser.email,
-          title: detectedUser.title,
-          userRole: detectedUser.userRole,
-          supervisorId: detectedUser.supervisorId,
-          workstreamIds: detectedUser.workstreamIds,
-        }
-        setCurrentUser(session)
-        localStorage.setItem('currentUser', JSON.stringify(session))
-        logAudit(session.id, session.name, 'Auto-Login', 'App', undefined, 'User auto-logged in based on Windows credentials')
+    const detectedUser = detectUser()
+    if (detectedUser) {
+      const session: UserSession = {
+        id: detectedUser.id,
+        name: detectedUser.name,
+        email: detectedUser.email,
+        title: detectedUser.title,
+        userRole: detectedUser.userRole,
+        supervisorId: detectedUser.supervisorId,
+        workstreamIds: detectedUser.workstreamIds,
       }
-      // If no user detected, Login screen will show and user must select once
+      setCurrentUser(session)
+      localStorage.setItem('currentUser', JSON.stringify(session))
+      logAudit(session.id, session.name, 'Auto-Login', 'App', undefined, 'User auto-logged in (demo mode)')
     }
-  }, [])
+  }, [isSsoEnabled])
 
   const login = (userId: string) => {
     const staff = getStaff()
@@ -92,47 +144,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const loginWithGoogle = (credential: string) => {
+  const loginWithMicrosoft = async () => {
     try {
-      // Decode Google JWT token to get user info
-      const payload = JSON.parse(atob(credential.split('.')[1]))
-      const { email, name, picture: _picture } = payload
-
-      // Find matching staff by email
-      const staff = getStaff()
-      const matchedUser = staff.find((s: any) => s.email.toLowerCase() === email.toLowerCase())
-
-      let session: UserSession
-
-      if (matchedUser) {
-        // Existing user - use their role and info
-        session = {
-          id: matchedUser.id,
-          name: matchedUser.name,
-          email: matchedUser.email,
-          title: matchedUser.title,
-          userRole: matchedUser.userRole,
-          supervisorId: matchedUser.supervisorId,
-          workstreamIds: matchedUser.workstreamIds,
-        }
-      } else {
-        // New user - create session with default "User" role
-        session = {
-          id: `google-${email}`,
-          name: name,
-          email: email,
-          title: 'Associate',
-          userRole: 'User',
-          workstreamIds: [],
-        }
-      }
-
-      setCurrentUser(session)
-      localStorage.setItem('currentUser', JSON.stringify(session))
-      localStorage.setItem('googleCredential', credential)
-      logAudit(session.id, session.name, 'Google-Login', 'App', undefined, 'User logged in via Google OAuth')
+      await instance.loginPopup(loginRequest)
+      // The useEffect will handle the account once authenticated
     } catch (error) {
-      console.error('Failed to decode Google credential:', error)
+      console.error('Microsoft login failed:', error)
+      throw error
     }
   }
 
@@ -142,13 +160,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     setCurrentUser(null)
     localStorage.removeItem('currentUser')
+
+    // Also logout from Microsoft if SSO was used
+    if (isAuthenticated) {
+      instance.logoutPopup()
+    }
   }
 
   const isAdmin = currentUser?.userRole === 'Admin'
   const isManager = currentUser?.userRole === 'Admin' || currentUser?.userRole === 'Manager'
 
   return (
-    <AuthContext.Provider value={{ currentUser, login, loginWithGoogle, logout, isAdmin, isManager }}>
+    <AuthContext.Provider value={{ currentUser, login, loginWithMicrosoft, logout, isAdmin, isManager, isSsoEnabled }}>
       {children}
     </AuthContext.Provider>
   )
