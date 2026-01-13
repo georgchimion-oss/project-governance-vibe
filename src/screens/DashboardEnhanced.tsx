@@ -9,7 +9,7 @@ import { useAuth } from '../context/AuthContext'
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement)
 
-type ThemeType = 'glassmorphism' | 'monday' | 'notion' | 'linear'
+type ThemeType = 'glassmorphism' | 'monday' | 'mondayPro' | 'notion' | 'linear'
 
 const THEMES = {
   glassmorphism: {
@@ -29,6 +29,26 @@ const THEMES = {
     textPrimary: '#2d3436',
     textSecondary: '#636e72',
     primary: '#6c5ce7',
+  },
+  mondayPro: {
+    name: 'Monday.com Pro',
+    bgMain: '#F6F7FB',
+    cardBg: '#FFFFFF',
+    cardBorder: 'rgba(0, 0, 0, 0.06)',
+    textPrimary: '#323338',
+    textSecondary: '#676879',
+    primary: '#0073EA',
+    accent1: '#00CA72',
+    accent2: '#FDAB3D',
+    accent3: '#FF5AC4',
+    accent4: '#9CD326',
+    statusColors: {
+      completed: '#00CA72',
+      inProgress: '#0073EA',
+      atRisk: '#E44258',
+      blocked: '#C4C4C4',
+      notStarted: '#C4C4C4',
+    }
   },
   notion: {
     name: 'Notion Clean',
@@ -64,6 +84,25 @@ export default function DashboardEnhanced() {
   const staff = getStaff()
 
   const currentTheme = THEMES[theme]
+
+  // Helper function to get status colors based on theme
+  const getStatusColor = (status: string) => {
+    if (theme === 'mondayPro' && currentTheme.statusColors) {
+      const statusMap: Record<string, string> = {
+        'Completed': currentTheme.statusColors.completed,
+        'In Progress': currentTheme.statusColors.inProgress,
+        'At Risk': currentTheme.statusColors.atRisk,
+        'Blocked': currentTheme.statusColors.blocked,
+        'Not Started': currentTheme.statusColors.notStarted,
+      }
+      return statusMap[status] || '#C4C4C4'
+    }
+    // Default colors for other themes
+    return status === 'Completed' ? '#10b981' :
+           status === 'In Progress' ? '#3b82f6' :
+           status === 'At Risk' ? '#ef4444' :
+           status === 'Blocked' ? '#6b7280' : '#94a3b8'
+  }
 
   // Filter deliverables to show those assigned to current user OR their supervisor
   const deliverables = useMemo(() => {
@@ -259,20 +298,27 @@ export default function DashboardEnhanced() {
                 <div
                   key={d.id}
                   style={{
-                    background: theme === 'notion' || theme === 'monday' ? 'rgba(255, 255, 255, 0.8)' : 'rgba(255, 255, 255, 0.05)',
-                    border: `1px solid ${currentTheme.cardBorder}`,
-                    borderRadius: '12px',
+                    background: theme === 'mondayPro' ? '#FFFFFF' :
+                               theme === 'notion' || theme === 'monday' ? 'rgba(255, 255, 255, 0.8)' :
+                               'rgba(255, 255, 255, 0.05)',
+                    border: theme === 'mondayPro' ? '1px solid #E6E9EF' : `1px solid ${currentTheme.cardBorder}`,
+                    borderRadius: theme === 'mondayPro' ? '8px' : '12px',
                     padding: '1.5rem',
                     transition: 'all 0.2s',
                     cursor: 'pointer',
+                    boxShadow: theme === 'mondayPro' ? '0 1px 3px rgba(0, 0, 0, 0.08)' : 'none',
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = 'translateY(-2px)'
-                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.15)'
+                    e.currentTarget.style.boxShadow = theme === 'mondayPro' ?
+                      '0 4px 12px rgba(0, 0, 0, 0.12)' :
+                      '0 8px 24px rgba(0, 0, 0, 0.15)'
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = 'translateY(0)'
-                    e.currentTarget.style.boxShadow = 'none'
+                    e.currentTarget.style.boxShadow = theme === 'mondayPro' ?
+                      '0 1px 3px rgba(0, 0, 0, 0.08)' :
+                      'none'
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
@@ -295,16 +341,18 @@ export default function DashboardEnhanced() {
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                           <span style={{
-                            padding: '0.25rem 0.75rem',
-                            borderRadius: '9999px',
+                            padding: theme === 'mondayPro' ? '0.375rem 1rem' : '0.25rem 0.75rem',
+                            borderRadius: theme === 'mondayPro' ? '4px' : '9999px',
                             fontSize: '0.75rem',
-                            fontWeight: '500',
-                            background: d.status === 'Completed' ? 'rgba(16, 185, 129, 0.2)' :
+                            fontWeight: theme === 'mondayPro' ? '600' : '500',
+                            background: theme === 'mondayPro' ? getStatusColor(d.status) :
+                                       d.status === 'Completed' ? 'rgba(16, 185, 129, 0.2)' :
                                        d.status === 'In Progress' ? 'rgba(59, 130, 246, 0.2)' :
                                        d.status === 'At Risk' ? 'rgba(239, 68, 68, 0.2)' :
                                        d.status === 'Blocked' ? 'rgba(107, 114, 128, 0.2)' :
                                        'rgba(148, 163, 184, 0.2)',
-                            color: d.status === 'Completed' ? '#10b981' :
+                            color: theme === 'mondayPro' ? '#FFFFFF' :
+                                  d.status === 'Completed' ? '#10b981' :
                                   d.status === 'In Progress' ? '#3b82f6' :
                                   d.status === 'At Risk' ? '#ef4444' :
                                   d.status === 'Blocked' ? '#6b7280' :
