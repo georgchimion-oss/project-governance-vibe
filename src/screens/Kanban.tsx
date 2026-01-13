@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd'
 import { getDeliverables, updateDeliverable, getStaff, getWorkstreams } from '../data/dataLayer'
 import type { DeliverableStatus } from '../types'
@@ -14,49 +14,93 @@ const STATUS_COLORS: Record<DeliverableStatus, string> = {
   'Completed': '#10b981',
 }
 
+type GroupByType = 'status' | 'workstream' | 'owner'
+
 export default function Kanban() {
   const [deliverables, setDeliverables] = useState(getDeliverables())
+  const [groupBy, setGroupBy] = useState<GroupByType>('status')
   const staff = getStaff()
   const workstreams = getWorkstreams()
+
+  const columns = useMemo(() => {
+    if (groupBy === 'status') {
+      return STATUSES.map(status => ({ id: status, name: status, color: STATUS_COLORS[status] }))
+    } else if (groupBy === 'workstream') {
+      return workstreams.map(w => ({ id: w.id, name: w.name, color: w.color }))
+    } else {
+      return staff.map(s => ({ id: s.id, name: s.name, color: '#64748b' }))
+    }
+  }, [groupBy, workstreams, staff])
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return
 
     const { draggableId, destination } = result
-    const newStatus = destination.droppableId as DeliverableStatus
 
-    updateDeliverable(draggableId, { status: newStatus })
-    setDeliverables(getDeliverables())
+    if (groupBy === 'status') {
+      const newStatus = destination.droppableId as DeliverableStatus
+      updateDeliverable(draggableId, { status: newStatus })
+      setDeliverables(getDeliverables())
+    }
+    // For workstream and owner grouping, drag-drop updates would need more complex logic
   }
 
-  const getColumnDeliverables = (status: DeliverableStatus) => {
-    return deliverables.filter((d) => d.status === status)
+  const getColumnDeliverables = (columnId: string) => {
+    if (groupBy === 'status') {
+      return deliverables.filter((d) => d.status === columnId)
+    } else if (groupBy === 'workstream') {
+      return deliverables.filter((d) => d.workstreamId === columnId)
+    } else {
+      return deliverables.filter((d) => d.ownerId === columnId)
+    }
   }
 
   return (
     <div>
-      <div style={{ marginBottom: '1.5rem' }}>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '0.5rem' }}>
-          Project Kanban Board
-        </h2>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-          Drag and drop deliverables between columns to update their status
-        </p>
+      <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+            Project Kanban Board
+          </h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
+            Drag and drop deliverables between columns {groupBy === 'status' ? 'to update their status' : ''}
+          </p>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <label style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Group by:</label>
+          <select
+            value={groupBy}
+            onChange={(e) => setGroupBy(e.target.value as GroupByType)}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '8px',
+              border: '1px solid var(--border)',
+              background: 'var(--bg-card)',
+              color: 'var(--text-primary)',
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+            }}
+          >
+            <option value="status">Status</option>
+            <option value="workstream">Workstream</option>
+            <option value="owner">Owner</option>
+          </select>
+        </div>
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(5, 1fr)',
+            gridTemplateColumns: `repeat(${columns.length}, 1fr)`,
             gap: '1rem',
             height: 'calc(100vh - 250px)',
           }}
         >
-          {STATUSES.map((status) => {
-            const columnDeliverables = getColumnDeliverables(status)
+          {columns.map((column) => {
+            const columnDeliverables = getColumnDeliverables(column.id)
             return (
-              <div key={status} style={{ display: 'flex', flexDirection: 'column' }}>
+              <div key={column.id} style={{ display: 'flex', flexDirection: 'column' }}>
                 <div
                   style={{
                     background: 'var(--bg-card)',
@@ -74,10 +118,10 @@ export default function Kanban() {
                         width: '8px',
                         height: '8px',
                         borderRadius: '50%',
-                        background: STATUS_COLORS[status],
+                        background: column.color,
                       }}
                     />
-                    <h3 style={{ fontSize: '0.875rem', fontWeight: '600' }}>{status}</h3>
+                    <h3 style={{ fontSize: '0.875rem', fontWeight: '600' }}>{column.name}</h3>
                   </div>
                   <span
                     style={{
@@ -92,7 +136,7 @@ export default function Kanban() {
                   </span>
                 </div>
 
-                <Droppable droppableId={status}>
+                <Droppable droppableId={column.id}>
                   {(provided, snapshot) => (
                     <div
                       ref={provided.innerRef}
