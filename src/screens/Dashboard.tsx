@@ -5,14 +5,21 @@ import { Doughnut, Bar } from 'react-chartjs-2'
 import { getDeliverables, getWorkstreams, getStaff } from '../data/dataLayer'
 import { AlertCircle, TrendingUp, CheckCircle2, Clock } from 'lucide-react'
 import type { DashboardStats } from '../types'
+import { useAuth } from '../context/AuthContext'
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement)
 
 export default function Dashboard() {
   const navigate = useNavigate()
-  const deliverables = getDeliverables()
+  const { currentUser } = useAuth()
+  const allDeliverables = getDeliverables()
   const workstreams = getWorkstreams()
   const staff = getStaff()
+
+  // Filter deliverables to show only those assigned to current user
+  const deliverables = useMemo(() => {
+    return allDeliverables.filter(d => d.ownerId === currentUser?.id)
+  }, [allDeliverables, currentUser?.id])
 
   const stats: DashboardStats = useMemo(() => {
     const total = deliverables.length
@@ -73,11 +80,17 @@ export default function Dashboard() {
 
   return (
     <>
+      <div style={{ marginBottom: '1.5rem' }}>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
+          Showing deliverables assigned to you
+        </p>
+      </div>
+
       <div className="stats-grid">
         <div className="stat-card">
-          <div className="stat-label">Total Deliverables</div>
+          <div className="stat-label">My Deliverables</div>
           <div className="stat-value">{stats.totalDeliverables}</div>
-          <div className="stat-change">Across {workstreams.length} workstreams</div>
+          <div className="stat-change">Assigned to you</div>
         </div>
         <div className="stat-card">
           <div className="stat-label">Completion Rate</div>
