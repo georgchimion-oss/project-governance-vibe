@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import Layout from './components/Layout'
 import Login from './screens/Login'
 import Dashboard from './screens/Dashboard'
+import DashboardEnhanced from './screens/DashboardEnhanced'
 import Kanban from './screens/Kanban'
 import Gantt from './screens/Gantt'
 import Deliverables from './screens/Deliverables'
@@ -32,6 +33,14 @@ function AppRoutes() {
     <Routes>
       <Route
         path="/"
+        element={
+          <>
+            <DashboardEnhanced />
+          </>
+        }
+      />
+      <Route
+        path="/dashboard-old"
         element={
           <Layout title="My Work">
             <Dashboard />
