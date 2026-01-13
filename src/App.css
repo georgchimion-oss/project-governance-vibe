@@ -5,18 +5,21 @@
 }
 
 :root {
-  --primary: #3b82f6;
-  --primary-dark: #2563eb;
+  --pwc-orange: #E88D14;
+  --pwc-dark-orange: #DB4E18;
+  --pwc-red: #AD1B02;
+  --primary: #E88D14;
+  --primary-dark: #DB4E18;
   --secondary: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
-  --bg-main: #0f172a;
-  --bg-card: #1e293b;
-  --bg-hover: #334155;
-  --text-primary: #f1f5f9;
+  --bg-main: #0a0e1a;
+  --bg-card: #151923;
+  --bg-hover: #1f2937;
+  --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
-  --border: #334155;
-  --shadow: rgba(0, 0, 0, 0.3);
+  --border: #2d3748;
+  --shadow: rgba(0, 0, 0, 0.4);
 }
 
 body {

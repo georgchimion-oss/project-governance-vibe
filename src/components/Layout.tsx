@@ -1,5 +1,6 @@
 import { useState, ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import {
   LayoutDashboard,
   Trello,
@@ -9,6 +10,8 @@ import {
   Layers,
   Menu,
   X,
+  LogOut,
+  Shield,
 } from 'lucide-react'
 
 interface LayoutProps {
@@ -18,6 +21,7 @@ interface LayoutProps {
 
 export default function Layout({ children, title }: LayoutProps) {
   const [collapsed, setCollapsed] = useState(false)
+  const { currentUser, logout } = useAuth()
 
   return (
     <div className="app">
@@ -37,7 +41,7 @@ export default function Layout({ children, title }: LayoutProps) {
             <li className="nav-item">
               <NavLink to="/" className="nav-link">
                 <LayoutDashboard className="nav-icon" />
-                <span className="nav-text">Dashboard</span>
+                <span className="nav-text">My Work</span>
               </NavLink>
             </li>
             <li className="nav-item">
@@ -72,6 +76,29 @@ export default function Layout({ children, title }: LayoutProps) {
             </li>
           </ul>
         </nav>
+
+        <div style={{ marginTop: 'auto', padding: '1rem', borderTop: '1px solid var(--border)' }}>
+          <div style={{ marginBottom: '1rem' }}>
+            {!collapsed && (
+              <div style={{ fontSize: '0.875rem' }}>
+                <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>{currentUser?.name}</div>
+                <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
+                  {currentUser?.title}
+                </div>
+                {currentUser?.userRole === 'Admin' && (
+                  <div style={{ marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--primary)' }}>
+                    <Shield size={12} />
+                    <span style={{ fontSize: '0.6875rem' }}>Administrator</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          <button onClick={logout} className="btn btn-secondary" style={{ width: '100%', justifyContent: 'center' }}>
+            <LogOut size={16} />
+            {!collapsed && <span>Sign Out</span>}
+          </button>
+        </div>
       </aside>
       <main className="main-content">
         <div className="topbar">

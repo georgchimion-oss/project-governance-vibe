@@ -1,13 +1,19 @@
 export type RiskLevel = 'Low' | 'Medium' | 'High' | 'Critical'
 export type DeliverableStatus = 'Not Started' | 'In Progress' | 'At Risk' | 'Completed' | 'Blocked'
 export type Priority = 'Low' | 'Medium' | 'High' | 'Critical'
+export type StaffTitle = 'Partner' | 'Director' | 'Senior Manager' | 'Manager' | 'Senior Associate' | 'Associate'
+export type UserRole = 'Admin' | 'Manager' | 'User'
 
 export interface Staff {
   id: string
   name: string
+  title: StaffTitle
   role: string
   email: string
   department: string
+  supervisorId?: string
+  workstreamIds: string[]
+  userRole: UserRole
   isActive: boolean
   createdAt: string
 }
@@ -48,7 +54,40 @@ export interface PTORequest {
   type: 'Vacation' | 'Sick Leave' | 'Personal' | 'Other'
   status: 'Pending' | 'Approved' | 'Rejected'
   notes?: string
+  approvedBy?: string
+  approvedAt?: string
   createdAt: string
+}
+
+export interface HoursLog {
+  id: string
+  staffId: string
+  deliverableId: string
+  date: string
+  hours: number
+  description: string
+  createdAt: string
+}
+
+export interface AuditLog {
+  id: string
+  userId: string
+  userName: string
+  action: string
+  entityType: 'Deliverable' | 'Staff' | 'Workstream' | 'PTO' | 'Hours' | 'App'
+  entityId?: string
+  details: string
+  timestamp: string
+}
+
+export interface UserSession {
+  id: string
+  name: string
+  email: string
+  title: StaffTitle
+  userRole: UserRole
+  supervisorId?: string
+  workstreamIds: string[]
 }
 
 export interface DashboardStats {

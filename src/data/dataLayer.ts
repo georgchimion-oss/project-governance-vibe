@@ -1,9 +1,10 @@
-import type { Staff, Workstream, Deliverable, PTORequest } from '../types'
+import type { Staff, Workstream, Deliverable, PTORequest, HoursLog } from '../types'
 
 const STAFF_KEY = 'gov_staff'
 const WORKSTREAMS_KEY = 'gov_workstreams'
 const DELIVERABLES_KEY = 'gov_deliverables'
 const PTO_KEY = 'gov_pto'
+const HOURS_KEY = 'gov_hours'
 
 // Staff CRUD
 export function getStaff(): Staff[] {
@@ -129,34 +130,116 @@ export function deletePTORequest(id: string): void {
   setPTORequests(allRequests.filter((r) => r.id !== id))
 }
 
+// Hours CRUD
+export function getHoursLogs(): HoursLog[] {
+  const data = localStorage.getItem(HOURS_KEY)
+  if (!data) return []
+  return JSON.parse(data)
+}
+
+export function setHoursLogs(logs: HoursLog[]): void {
+  localStorage.setItem(HOURS_KEY, JSON.stringify(logs))
+}
+
+export function createHoursLog(log: HoursLog): void {
+  const allLogs = getHoursLogs()
+  allLogs.push(log)
+  setHoursLogs(allLogs)
+}
+
+export function updateHoursLog(id: string, updates: Partial<HoursLog>): void {
+  const allLogs = getHoursLogs()
+  const index = allLogs.findIndex((l) => l.id === id)
+  if (index !== -1) {
+    allLogs[index] = { ...allLogs[index], ...updates }
+    setHoursLogs(allLogs)
+  }
+}
+
+export function deleteHoursLog(id: string): void {
+  const allLogs = getHoursLogs()
+  setHoursLogs(allLogs.filter((l) => l.id !== id))
+}
+
 // Seed data function
 export function seedInitialData(): void {
   if (getStaff().length === 0) {
     const sampleStaff: Staff[] = [
       {
         id: '1',
-        name: 'Sarah Johnson',
-        role: 'Project Manager',
-        email: 'sarah.j@company.com',
-        department: 'PMO',
+        name: 'Robert Martinez',
+        title: 'Partner',
+        role: 'Engagement Partner',
+        email: 'robert.martinez@pwc.com',
+        department: 'Advisory',
+        supervisorId: undefined,
+        workstreamIds: ['1', '2', '3'],
+        userRole: 'Admin',
         isActive: true,
         createdAt: new Date().toISOString(),
       },
       {
         id: '2',
-        name: 'Michael Chen',
-        role: 'Senior Developer',
-        email: 'michael.c@company.com',
-        department: 'Engineering',
+        name: 'Sarah Johnson',
+        title: 'Director',
+        role: 'Program Director',
+        email: 'sarah.johnson@pwc.com',
+        department: 'PMO',
+        supervisorId: '1',
+        workstreamIds: ['1', '2'],
+        userRole: 'Manager',
         isActive: true,
         createdAt: new Date().toISOString(),
       },
       {
         id: '3',
+        name: 'Michael Chen',
+        title: 'Senior Manager',
+        role: 'Technical Lead',
+        email: 'michael.chen@pwc.com',
+        department: 'Engineering',
+        supervisorId: '2',
+        workstreamIds: ['1', '3'],
+        userRole: 'Manager',
+        isActive: true,
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: '4',
         name: 'Emma Wilson',
-        role: 'Business Analyst',
-        email: 'emma.w@company.com',
+        title: 'Manager',
+        role: 'Business Analyst Lead',
+        email: 'emma.wilson@pwc.com',
         department: 'Business',
+        supervisorId: '2',
+        workstreamIds: ['2'],
+        userRole: 'User',
+        isActive: true,
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: '5',
+        name: 'David Kim',
+        title: 'Senior Associate',
+        role: 'Developer',
+        email: 'david.kim@pwc.com',
+        department: 'Engineering',
+        supervisorId: '3',
+        workstreamIds: ['1'],
+        userRole: 'User',
+        isActive: true,
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: '6',
+        name: 'Lisa Anderson',
+        title: 'Associate',
+        role: 'Junior Analyst',
+        email: 'lisa.anderson@pwc.com',
+        department: 'Business',
+        supervisorId: '4',
+        workstreamIds: ['2'],
+        userRole: 'User',
         isActive: true,
         createdAt: new Date().toISOString(),
       },
