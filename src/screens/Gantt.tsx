@@ -1,8 +1,10 @@
 import { useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { getDeliverables, getWorkstreams, getStaff } from '../data/dataLayer'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isWithinInterval } from 'date-fns'
 
 export default function Gantt() {
+  const navigate = useNavigate()
   const deliverables = getDeliverables()
   const workstreams = getWorkstreams()
   const staff = getStaff()
@@ -225,6 +227,7 @@ export default function Gantt() {
                       })}
 
                       <div
+                        onClick={() => navigate('/deliverables')}
                         style={{
                           position: 'absolute',
                           top: '50%',
@@ -243,7 +246,11 @@ export default function Gantt() {
                           boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
                           zIndex: 1,
                           overflow: 'hidden',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
                         }}
+                        onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.85')}
+                        onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
                       >
                         <div
                           style={{
