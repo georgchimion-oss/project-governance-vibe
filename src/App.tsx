@@ -25,18 +25,7 @@ function AppRoutes() {
   }, [])
 
   if (!currentUser) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'var(--bg-main)',
-        color: 'var(--text-primary)'
-      }}>
-        Loading...
-      </div>
-    )
+    return <Login />
   }
 
   return (

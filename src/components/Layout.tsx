@@ -124,9 +124,17 @@ export default function Layout({ children, title }: LayoutProps) {
               </div>
             )}
           </div>
-          <button onClick={logout} className="btn btn-secondary" style={{ width: '100%', justifyContent: 'center' }}>
+          <button
+            onClick={() => {
+              logout()
+              localStorage.clear()
+              window.location.reload()
+            }}
+            className="btn btn-secondary"
+            style={{ width: '100%', justifyContent: 'center' }}
+          >
             <LogOut size={16} />
-            {!collapsed && <span>Sign Out</span>}
+            {!collapsed && <span>Switch User</span>}
           </button>
         </div>
       </aside>

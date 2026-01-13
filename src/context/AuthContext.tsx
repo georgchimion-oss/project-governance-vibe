@@ -17,25 +17,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<UserSession | null>(null)
 
   useEffect(() => {
+    // Try to detect Windows username from environment
+    const detectUser = () => {
+      const staff = getStaff()
+      if (staff.length === 0) return null
+
+      // Try to get username from various browser APIs
+      const username =
+        (navigator as any).userAgentData?.username ||
+        (navigator as any).username ||
+        window.localStorage.getItem('detectedUsername')
+
+      if (username) {
+        // Try to match by name or email
+        const matchedUser = staff.find((s: any) =>
+          s.name.toLowerCase().includes(username.toLowerCase()) ||
+          s.email.toLowerCase().includes(username.toLowerCase())
+        )
+        if (matchedUser) return matchedUser
+      }
+
+      // Fallback to first admin user
+      return staff.find((s: any) => s.userRole === 'Admin') || staff[0]
+    }
+
     const savedUser = localStorage.getItem('currentUser')
     if (savedUser) {
       const user = JSON.parse(savedUser)
       setCurrentUser(user)
       logAudit(user.id, user.name, 'App Opened', 'App', undefined, 'User opened the application')
     } else {
-      // Auto-detect user - for demo, try to match by email domain or auto-login first user
-      const staff = getStaff()
-      if (staff.length > 0) {
-        // Auto-login as first admin user (for demo purposes)
-        const adminUser = staff.find((s: any) => s.userRole === 'Admin') || staff[0]
+      const detectedUser = detectUser()
+      if (detectedUser) {
         const session: UserSession = {
-          id: adminUser.id,
-          name: adminUser.name,
-          email: adminUser.email,
-          title: adminUser.title,
-          userRole: adminUser.userRole,
-          supervisorId: adminUser.supervisorId,
-          workstreamIds: adminUser.workstreamIds,
+          id: detectedUser.id,
+          name: detectedUser.name,
+          email: detectedUser.email,
+          title: detectedUser.title,
+          userRole: detectedUser.userRole,
+          supervisorId: detectedUser.supervisorId,
+          workstreamIds: detectedUser.workstreamIds,
         }
         setCurrentUser(session)
         localStorage.setItem('currentUser', JSON.stringify(session))
