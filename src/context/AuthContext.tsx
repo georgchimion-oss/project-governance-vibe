@@ -6,6 +6,7 @@ import { getStaff } from '../data/dataLayer'
 interface AuthContextType {
   currentUser: UserSession | null
   login: (userId: string) => void
+  loginWithGoogle: (credential: string) => void
   logout: () => void
   isAdmin: boolean
   isManager: boolean
@@ -91,6 +92,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const loginWithGoogle = (credential: string) => {
+    try {
+      // Decode Google JWT token to get user info
+      const payload = JSON.parse(atob(credential.split('.')[1]))
+      const { email, name, picture: _picture } = payload
+
+      // Find matching staff by email
+      const staff = getStaff()
+      const matchedUser = staff.find((s: any) => s.email.toLowerCase() === email.toLowerCase())
+
+      let session: UserSession
+
+      if (matchedUser) {
+        // Existing user - use their role and info
+        session = {
+          id: matchedUser.id,
+          name: matchedUser.name,
+          email: matchedUser.email,
+          title: matchedUser.title,
+          userRole: matchedUser.userRole,
+          supervisorId: matchedUser.supervisorId,
+          workstreamIds: matchedUser.workstreamIds,
+        }
+      } else {
+        // New user - create session with default "User" role
+        session = {
+          id: `google-${email}`,
+          name: name,
+          email: email,
+          title: 'Associate',
+          userRole: 'User',
+          workstreamIds: [],
+        }
+      }
+
+      setCurrentUser(session)
+      localStorage.setItem('currentUser', JSON.stringify(session))
+      localStorage.setItem('googleCredential', credential)
+      logAudit(session.id, session.name, 'Google-Login', 'App', undefined, 'User logged in via Google OAuth')
+    } catch (error) {
+      console.error('Failed to decode Google credential:', error)
+    }
+  }
+
   const logout = () => {
     if (currentUser) {
       logAudit(currentUser.id, currentUser.name, 'Logout', 'App', undefined, 'User logged out')
@@ -103,7 +148,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isManager = currentUser?.userRole === 'Admin' || currentUser?.userRole === 'Manager'
 
   return (
-    <AuthContext.Provider value={{ currentUser, login, logout, isAdmin, isManager }}>
+    <AuthContext.Provider value={{ currentUser, login, loginWithGoogle, logout, isAdmin, isManager }}>
       {children}
     </AuthContext.Provider>
   )
