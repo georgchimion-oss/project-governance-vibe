@@ -34,15 +34,15 @@ function AppRoutes() {
       <Route
         path="/"
         element={
-          <>
+          <Layout title="My Work">
             <DashboardEnhanced />
-          </>
+          </Layout>
         }
       />
       <Route
         path="/dashboard-old"
         element={
-          <Layout title="My Work">
+          <Layout title="My Work (Old)">
             <Dashboard />
           </Layout>
         }
