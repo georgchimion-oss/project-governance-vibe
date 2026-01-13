@@ -29,14 +29,14 @@ export default function PTORequests() {
 
   const myRequests = requests.filter((r) => r.staffId === currentUser?.id)
 
-  // Team requests: show if user is a supervisor OR if user is a Partner (can approve any)
+  // Team requests: show if user is a supervisor OR if user is an Admin (can approve any)
   const teamRequests = isManager
     ? requests.filter((r) => {
         const requestStaff = staff.find((s) => s.id === r.staffId)
-        // Show if this is their direct report OR if current user is a Partner
+        // Show if this is their direct report OR if current user is Admin
         return (
           requestStaff?.supervisorId === currentUser?.id ||
-          currentUser?.title === 'Partner'
+          currentUser?.userRole === 'Admin'
         )
       })
     : []
