@@ -40,9 +40,9 @@ export const msalConfig: Configuration = {
   },
 }
 
-// Scopes for Microsoft Graph API
+// Scopes for Microsoft Graph API (including SharePoint access)
 export const loginRequest = {
-  scopes: ['User.Read', 'openid', 'profile', 'email'],
+  scopes: ['User.Read', 'openid', 'profile', 'email', 'Sites.Read.All', 'Sites.ReadWrite.All'],
 }
 
 // Helper to check if MSAL is configured
