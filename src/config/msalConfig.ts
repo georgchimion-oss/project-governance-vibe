@@ -46,6 +46,6 @@ export const loginRequest = {
 }
 
 // Helper to check if MSAL is configured
-export const isMsalConfigured = () => {
-  return MSAL_CLIENT_ID && MSAL_CLIENT_ID.length > 10
+export const isMsalConfigured = (): boolean => {
+  return Boolean(MSAL_CLIENT_ID && MSAL_CLIENT_ID.length > 10)
 }
