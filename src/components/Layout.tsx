@@ -14,7 +14,7 @@ import {
   Shield,
   Umbrella,
   Clock,
-  Sitemap,
+  Network,
   BarChart3,
 } from 'lucide-react'
 
