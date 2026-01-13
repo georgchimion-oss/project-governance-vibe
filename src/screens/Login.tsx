@@ -10,7 +10,12 @@ export default function Login() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
     if (selectedUserId) {
-      login(selectedUserId)
+      const user = staff.find(s => s.id === selectedUserId)
+      if (user) {
+        // Save the username for auto-detection next time
+        window.localStorage.setItem('manualUsername', user.name.split(' ')[0].toLowerCase())
+        login(selectedUserId)
+      }
     }
   }
 
@@ -95,7 +100,7 @@ export default function Login() {
             textAlign: 'center',
           }}
         >
-          Demo Mode: Select any user to continue
+          First-time setup: Select your account once. The app will remember you on next launch.
         </p>
       </div>
     </div>

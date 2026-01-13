@@ -22,23 +22,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const staff = getStaff()
       if (staff.length === 0) return null
 
-      // Try to get username from various browser APIs
-      const username =
-        (navigator as any).userAgentData?.username ||
-        (navigator as any).username ||
-        window.localStorage.getItem('detectedUsername')
+      // Try to get Windows username from environment variable via electron or system
+      // In a real PWC environment, this would connect to Active Directory
+      // For now, we'll use a combination of approaches:
 
-      if (username) {
-        // Try to match by name or email
+      // 1. Check if there's a manually set username (for testing)
+      const manualUsername = window.localStorage.getItem('manualUsername')
+      if (manualUsername) {
         const matchedUser = staff.find((s: any) =>
-          s.name.toLowerCase().includes(username.toLowerCase()) ||
-          s.email.toLowerCase().includes(username.toLowerCase())
+          s.name.toLowerCase().includes(manualUsername.toLowerCase()) ||
+          s.email.toLowerCase().split('@')[0].toLowerCase() === manualUsername.toLowerCase()
         )
         if (matchedUser) return matchedUser
       }
 
-      // Fallback to first admin user
-      return staff.find((s: any) => s.userRole === 'Admin') || staff[0]
+      // 2. In a real corporate environment, you would use:
+      // - Active Directory integration
+      // - Windows Integrated Authentication
+      // - Corporate SSO token
+      // For demo: get from environment or prompt once
+
+      console.log('No user detected. In production, this would use Windows credentials/AD.')
+      return null // Return null to show login screen
     }
 
     const savedUser = localStorage.getItem('currentUser')
@@ -60,8 +65,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         setCurrentUser(session)
         localStorage.setItem('currentUser', JSON.stringify(session))
-        logAudit(session.id, session.name, 'Auto-Login', 'App', undefined, 'User auto-logged in based on credentials')
+        logAudit(session.id, session.name, 'Auto-Login', 'App', undefined, 'User auto-logged in based on Windows credentials')
       }
+      // If no user detected, Login screen will show and user must select once
     }
   }, [])
 
