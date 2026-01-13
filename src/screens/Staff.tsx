@@ -5,6 +5,7 @@ import { Plus, Edit2, Trash2, X, UserCheck, UserX } from 'lucide-react'
 
 export default function StaffScreen() {
   const [staff, setStaff] = useState(getStaff())
+  const [workstreams] = useState(getWorkstreams())
   const [showModal, setShowModal] = useState(false)
   const [editingStaff, setEditingStaff] = useState<Staff | null>(null)
 
@@ -13,6 +14,10 @@ export default function StaffScreen() {
     role: '',
     email: '',
     department: '',
+    title: 'Associate',
+    supervisorId: undefined,
+    workstreamIds: [],
+    userRole: 'User',
     isActive: true,
   })
 
@@ -27,6 +32,10 @@ export default function StaffScreen() {
         role: '',
         email: '',
         department: '',
+        title: 'Associate',
+        supervisorId: undefined,
+        workstreamIds: [],
+        userRole: 'User',
         isActive: true,
       })
     }
@@ -47,9 +56,13 @@ export default function StaffScreen() {
       const newStaff: Staff = {
         id: Date.now().toString(),
         name: formData.name!,
+        title: formData.title!,
         role: formData.role!,
         email: formData.email!,
         department: formData.department!,
+        supervisorId: formData.supervisorId,
+        workstreamIds: formData.workstreamIds || [],
+        userRole: formData.userRole!,
         isActive: formData.isActive!,
         createdAt: new Date().toISOString(),
       }
@@ -82,6 +95,7 @@ export default function StaffScreen() {
           <thead>
             <tr>
               <th>Name</th>
+              <th>Title</th>
               <th>Role</th>
               <th>Email</th>
               <th>Department</th>
@@ -93,6 +107,7 @@ export default function StaffScreen() {
             {staff.map((s) => (
               <tr key={s.id}>
                 <td style={{ fontWeight: '500' }}>{s.name}</td>
+                <td>{s.title}</td>
                 <td>{s.role}</td>
                 <td style={{ color: 'var(--text-secondary)' }}>{s.email}</td>
                 <td>{s.department}</td>
@@ -188,6 +203,73 @@ export default function StaffScreen() {
                       value={formData.department}
                       onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                     />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Title *</label>
+                  <select
+                    required
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value as any })}
+                  >
+                    <option value="Associate">Associate</option>
+                    <option value="Senior Associate">Senior Associate</option>
+                    <option value="Manager">Manager</option>
+                    <option value="Senior Manager">Senior Manager</option>
+                    <option value="Director">Director</option>
+                    <option value="Partner">Partner</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Supervisor</label>
+                  <select
+                    value={formData.supervisorId || ''}
+                    onChange={(e) => setFormData({ ...formData, supervisorId: e.target.value || undefined })}
+                  >
+                    <option value="">-- No Supervisor --</option>
+                    {staff.filter(s => s.id !== editingStaff?.id).map(s => (
+                      <option key={s.id} value={s.id}>{s.name} ({s.title})</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">User Role *</label>
+                  <select
+                    required
+                    value={formData.userRole}
+                    onChange={(e) => setFormData({ ...formData, userRole: e.target.value as any })}
+                  >
+                    <option value="User">User</option>
+                    <option value="Manager">Manager</option>
+                    <option value="Admin">Admin</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Workstreams</label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
+                    {workstreams.map(ws => (
+                      <label key={ws.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={(formData.workstreamIds || []).includes(ws.id)}
+                          onChange={(e) => {
+                            const current = formData.workstreamIds || []
+                            setFormData({
+                              ...formData,
+                              workstreamIds: e.target.checked
+                                ? [...current, ws.id]
+                                : current.filter(id => id !== ws.id)
+                            })
+                          }}
+                          style={{ width: 'auto', cursor: 'pointer' }}
+                        />
+                        <span style={{ fontSize: '0.875rem' }}>{ws.name}</span>
+                      </label>
+                    ))}
                   </div>
                 </div>
 
