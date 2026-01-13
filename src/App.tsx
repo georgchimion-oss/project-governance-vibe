@@ -9,6 +9,11 @@ import Gantt from './screens/Gantt'
 import Deliverables from './screens/Deliverables'
 import Staff from './screens/Staff'
 import Workstreams from './screens/Workstreams'
+import PTORequests from './screens/PTORequests'
+import HoursTracking from './screens/HoursTracking'
+import OrgChartHierarchy from './screens/OrgChartHierarchy'
+import OrgChartWorkstream from './screens/OrgChartWorkstream'
+import AdminAnalytics from './screens/AdminAnalytics'
 import { seedInitialData } from './data/dataLayer'
 import './App.css'
 
@@ -81,6 +86,46 @@ function AppRoutes() {
         element={
           <Layout title="Workstreams">
             <Workstreams />
+          </Layout>
+        }
+      />
+      <Route
+        path="/pto"
+        element={
+          <Layout title="PTO Requests">
+            <PTORequests />
+          </Layout>
+        }
+      />
+      <Route
+        path="/hours"
+        element={
+          <Layout title="Hours Tracking">
+            <HoursTracking />
+          </Layout>
+        }
+      />
+      <Route
+        path="/org-chart-hierarchy"
+        element={
+          <Layout title="Org Chart - Hierarchy">
+            <OrgChartHierarchy />
+          </Layout>
+        }
+      />
+      <Route
+        path="/org-chart-workstream"
+        element={
+          <Layout title="Org Chart - Workstream">
+            <OrgChartWorkstream />
+          </Layout>
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          <Layout title="Admin Analytics">
+            <AdminAnalytics />
           </Layout>
         }
       />

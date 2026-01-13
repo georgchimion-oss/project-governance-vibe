@@ -12,6 +12,10 @@ import {
   X,
   LogOut,
   Shield,
+  Umbrella,
+  Clock,
+  Sitemap,
+  BarChart3,
 } from 'lucide-react'
 
 interface LayoutProps {
@@ -74,6 +78,32 @@ export default function Layout({ children, title }: LayoutProps) {
                 <span className="nav-text">Workstreams</span>
               </NavLink>
             </li>
+            <li className="nav-item">
+              <NavLink to="/pto" className="nav-link">
+                <Umbrella className="nav-icon" />
+                <span className="nav-text">PTO Requests</span>
+              </NavLink>
+            </li>
+            <li className="nav-item">
+              <NavLink to="/hours" className="nav-link">
+                <Clock className="nav-icon" />
+                <span className="nav-text">Hours Tracking</span>
+              </NavLink>
+            </li>
+            <li className="nav-item">
+              <NavLink to="/org-chart-hierarchy" className="nav-link">
+                <Sitemap className="nav-icon" />
+                <span className="nav-text">Org Chart</span>
+              </NavLink>
+            </li>
+            {currentUser?.userRole === 'Admin' && (
+              <li className="nav-item">
+                <NavLink to="/admin" className="nav-link">
+                  <BarChart3 className="nav-icon" />
+                  <span className="nav-text">Admin Analytics</span>
+                </NavLink>
+              </li>
+            )}
           </ul>
         </nav>
 
