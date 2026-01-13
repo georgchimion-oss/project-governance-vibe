@@ -16,10 +16,13 @@ export default function Dashboard() {
   const workstreams = getWorkstreams()
   const staff = getStaff()
 
-  // Filter deliverables to show only those assigned to current user
+  // Filter deliverables to show those assigned to current user OR their supervisor
   const deliverables = useMemo(() => {
-    return allDeliverables.filter(d => d.ownerId === currentUser?.id)
-  }, [allDeliverables, currentUser?.id])
+    return allDeliverables.filter(d =>
+      d.ownerId === currentUser?.id ||
+      d.ownerId === currentUser?.supervisorId
+    )
+  }, [allDeliverables, currentUser?.id, currentUser?.supervisorId])
 
   const stats: DashboardStats = useMemo(() => {
     const total = deliverables.length
@@ -82,7 +85,7 @@ export default function Dashboard() {
     <>
       <div style={{ marginBottom: '1.5rem' }}>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-          Showing deliverables assigned to you
+          Showing deliverables assigned to you or your supervisor
         </p>
       </div>
 
