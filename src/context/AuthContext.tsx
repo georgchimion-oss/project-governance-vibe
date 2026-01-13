@@ -21,6 +21,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const user = JSON.parse(savedUser)
       setCurrentUser(user)
       logAudit(user.id, user.name, 'App Opened', 'App', undefined, 'User opened the application')
+    } else {
+      // Auto-detect user - for demo, try to match by email domain or auto-login first user
+      const { getStaff } = require('../data/dataLayer')
+      const staff = getStaff()
+      if (staff.length > 0) {
+        // Auto-login as first admin user (for demo purposes)
+        const adminUser = staff.find((s: any) => s.userRole === 'Admin') || staff[0]
+        const session: UserSession = {
+          id: adminUser.id,
+          name: adminUser.name,
+          email: adminUser.email,
+          title: adminUser.title,
+          userRole: adminUser.userRole,
+          supervisorId: adminUser.supervisorId,
+          workstreamIds: adminUser.workstreamIds,
+        }
+        setCurrentUser(session)
+        localStorage.setItem('currentUser', JSON.stringify(session))
+        logAudit(session.id, session.name, 'Auto-Login', 'App', undefined, 'User auto-logged in based on credentials')
+      }
     }
   }, [])
 
