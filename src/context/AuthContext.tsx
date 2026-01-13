@@ -36,14 +36,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (matchedUser) return matchedUser
       }
 
-      // 2. In a real corporate environment, you would use:
-      // - Active Directory integration
-      // - Windows Integrated Authentication
-      // - Corporate SSO token
-      // For demo: get from environment or prompt once
+      // 2. Try to find Georg Chimion (default demo user)
+      const georgUser = staff.find((s: any) =>
+        s.name.toLowerCase().includes('georg') && s.name.toLowerCase().includes('chimion')
+      )
+      if (georgUser) return georgUser
 
-      console.log('No user detected. In production, this would use Windows credentials/AD.')
-      return null // Return null to show login screen
+      // 3. Fallback to first admin user
+      return staff.find((s: any) => s.userRole === 'Admin') || staff[0]
     }
 
     const savedUser = localStorage.getItem('currentUser')
