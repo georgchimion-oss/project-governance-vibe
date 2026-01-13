@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { getStaff } from '../data/dataLayer'
-import { Users, ChevronRight } from 'lucide-react'
+import { Users } from 'lucide-react'
 
 export default function OrgChartHierarchy() {
   const staff = getStaff().filter((s) => s.isActive)

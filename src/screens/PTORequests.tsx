@@ -9,7 +9,7 @@ import {
 } from '../data/dataLayer'
 import { logAudit } from '../data/auditLayer'
 import type { PTORequest } from '../types'
-import { Plus, Edit2, Trash2, X, CheckCircle, XCircle, Clock } from 'lucide-react'
+import { Plus, Edit2, Trash2, X, CheckCircle, XCircle } from 'lucide-react'
 
 export default function PTORequests() {
   const { currentUser, isManager } = useAuth()

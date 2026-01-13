@@ -14,7 +14,7 @@ interface TableViewProps {
 type SortField = 'title' | 'status' | 'dueDate' | 'priority' | 'progress'
 type SortDirection = 'asc' | 'desc'
 
-export default function TableView({ deliverables, onUpdate }: TableViewProps) {
+export default function TableView({ deliverables }: TableViewProps) {
   const [sortBy, setSortBy] = useState<SortField>('dueDate')
   const [sortDir, setSortDir] = useState<SortDirection>('asc')
   const staff = getStaff()

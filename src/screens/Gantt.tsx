@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getDeliverables, getWorkstreams, getStaff } from '../data/dataLayer'
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isWithinInterval } from 'date-fns'
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from 'date-fns'
 
 export default function Gantt() {
   const navigate = useNavigate()

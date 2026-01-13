@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { getDeliverables, getStaff } from '../data/dataLayer'
 import { getAuditLogs, getActivityStats } from '../data/auditLayer'
-import { BarChart, Activity, AlertTriangle, TrendingUp, Calendar } from 'lucide-react'
+import { Activity, AlertTriangle, TrendingUp, Calendar } from 'lucide-react'
 
 export default function AdminAnalytics() {
   const deliverables = getDeliverables()

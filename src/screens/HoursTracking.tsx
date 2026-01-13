@@ -18,7 +18,7 @@ export default function HoursTracking() {
   const [showModal, setShowModal] = useState(false)
   const [editingLog, setEditingLog] = useState<HoursLog | null>(null)
   const deliverables = getDeliverables()
-  const staff = getStaff()
+  getStaff() // Load staff data
 
   const [formData, setFormData] = useState<Partial<HoursLog>>({
     staffId: currentUser?.id || '',

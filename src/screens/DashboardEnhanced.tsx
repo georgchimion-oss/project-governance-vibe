@@ -1,9 +1,7 @@
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js'
-import { Doughnut, Bar } from 'react-chartjs-2'
 import { getDeliverables, getWorkstreams, getStaff, updateDeliverable } from '../data/dataLayer'
-import { AlertCircle, TrendingUp, CheckCircle2, Clock, MessageSquare, AlertTriangle, Plus } from 'lucide-react'
+import { AlertCircle, TrendingUp, CheckCircle2, Clock, MessageSquare, AlertTriangle } from 'lucide-react'
 import type { DashboardStats } from '../types'
 import { useAuth } from '../context/AuthContext'
 import ViewSwitcher, { type ViewType } from '../components/ViewSwitcher'
@@ -14,7 +12,28 @@ ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarEle
 
 type ThemeType = 'glassmorphism' | 'monday' | 'mondayPro' | 'notion' | 'linear'
 
-const THEMES = {
+interface ThemeConfig {
+  name: string
+  bgMain: string
+  cardBg: string
+  cardBorder: string
+  textPrimary: string
+  textSecondary: string
+  primary: string
+  accent1?: string
+  accent2?: string
+  accent3?: string
+  accent4?: string
+  statusColors?: {
+    completed: string
+    inProgress: string
+    atRisk: string
+    blocked: string
+    notStarted: string
+  }
+}
+
+const THEMES: Record<ThemeType, ThemeConfig> = {
   glassmorphism: {
     name: 'Glassmorphism Dark',
     bgMain: 'linear-gradient(135deg, #0f1117 0%, #1a1d29 50%, #0f1117 100%)',
@@ -74,7 +93,6 @@ const THEMES = {
 }
 
 export default function DashboardEnhanced() {
-  const navigate = useNavigate()
   const { currentUser } = useAuth()
   const [theme, setTheme] = useState<ThemeType>('glassmorphism')
   const [currentView, setCurrentView] = useState<ViewType>('cards')

@@ -1,4 +1,3 @@
-import { useMemo } from 'react'
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd'
 import { Plus } from 'lucide-react'
 import type { Deliverable, DeliverableStatus } from '../types'
