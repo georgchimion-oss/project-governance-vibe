@@ -6,6 +6,9 @@ import { getDeliverables, getWorkstreams, getStaff, updateDeliverable } from '..
 import { AlertCircle, TrendingUp, CheckCircle2, Clock, MessageSquare, AlertTriangle, Plus } from 'lucide-react'
 import type { DashboardStats } from '../types'
 import { useAuth } from '../context/AuthContext'
+import ViewSwitcher, { type ViewType } from '../components/ViewSwitcher'
+import TableView from '../components/TableView'
+import KanbanView from '../components/KanbanView'
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement)
 
@@ -74,6 +77,7 @@ export default function DashboardEnhanced() {
   const navigate = useNavigate()
   const { currentUser } = useAuth()
   const [theme, setTheme] = useState<ThemeType>('glassmorphism')
+  const [currentView, setCurrentView] = useState<ViewType>('cards')
   const [commentingOn, setCommentingOn] = useState<string | null>(null)
   const [commentText, setCommentText] = useState('')
   const [showRiskModal, setShowRiskModal] = useState(false)
@@ -193,6 +197,11 @@ export default function DashboardEnhanced() {
         </div>
       </div>
 
+      {/* View Switcher */}
+      <div style={{ marginBottom: '1.5rem' }}>
+        <ViewSwitcher currentView={currentView} onViewChange={setCurrentView} />
+      </div>
+
       {/* Stats Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
         <div style={{
@@ -288,6 +297,15 @@ export default function DashboardEnhanced() {
             <p>No deliverables assigned to you yet.</p>
           </div>
         ) : (
+          <>
+            {currentView === 'table' && <TableView deliverables={deliverables} />}
+            {currentView === 'kanban' && <KanbanView deliverables={deliverables} onUpdate={() => window.location.reload()} />}
+            {currentView === 'timeline' && (
+              <div style={{ textAlign: 'center', padding: '3rem', color: currentTheme.textSecondary }}>
+                <p>Timeline view coming soon...</p>
+              </div>
+            )}
+            {currentView === 'cards' && (
           <div style={{ display: 'grid', gap: '1rem' }}>
             {deliverables.map((d) => {
               const owner = staff.find((s) => s.id === d.ownerId)
@@ -494,6 +512,8 @@ export default function DashboardEnhanced() {
               )
             })}
           </div>
+            )}
+          </>
         )}
       </div>
 
